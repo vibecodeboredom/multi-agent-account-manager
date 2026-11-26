@@ -11319,6 +11319,25 @@ impl SessionManager {
       }
     }
 
+    // The replacement pass above turns a leading group address such as
+    // "Everyone, " / "All of you, " into a leading "you, ", which the
+    // prefix strip above (written for the pre-replacement text) no longer
+    // matches. Strip that leftover vocative, mirroring how the Chinese
+    // "各位，" / "大家，" prefixes are dropped entirely. Only a punctuated
+    // leading vocative is stripped, so a mid-sentence "you" (e.g. "What do
+    // you think ...") and "hello, ..." are left untouched.
+    for prefix in [
+      "you,", "you:", "you - ", "You,", "You:", "You - ", "你，", "你,", "你：", "你:",
+    ] {
+      if let Some(rest) = s.strip_prefix(prefix) {
+        let rest_trim = rest.trim();
+        if !rest_trim.is_empty() {
+          s = rest_trim.to_string();
+          break;
+        }
+      }
+    }
+
     let cleaned = s.trim().to_string();
     if cleaned.is_empty() {
       raw.trim().to_string()
@@ -13291,8 +13310,8 @@ mod tests {
       )
       .await
       .unwrap();
-    assert!(p5_muse.contains("- 参考（资深架构-大明）: 建议保持上限 2 并发以控制内存"));
-    assert!(p5_muse.contains("- 参考（离职成员-旧名）: 历史保留正文内容"));
+    assert!(p5_muse.contains("- Reference (资深架构-大明): 建议保持上限 2 并发以控制内存"));
+    assert!(p5_muse.contains("- Reference (离职成员-旧名): 历史保留正文内容"));
 
     let _ = std::fs::remove_dir_all(&temp_dir);
   }
