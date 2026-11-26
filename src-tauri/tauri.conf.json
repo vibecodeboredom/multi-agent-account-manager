@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "叠号",
+  "productName": "Multi-Agent Account Manager",
   "version": "0.1.10",
   "identifier": "com.ldjx.accountmanager",
   "build": {
@@ -17,7 +17,7 @@
   },
   "bundle": {
     "active": true,
-    "shortDescription": "AI 助手账号切换器",
+    "shortDescription": "AI assistant account switcher",
     "targets": ["dmg", "nsis"],
     "macOS": {
       "minimumSystemVersion": "14.0"

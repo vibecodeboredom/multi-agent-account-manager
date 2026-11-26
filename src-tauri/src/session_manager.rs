@@ -134,7 +134,7 @@ const LOGIN_CAPTURE_INIT_JS: &str = r#"(() => {
     const BAD_EMAIL_RE = /^(?:support|privacy|help|legal|press|noreply|no-reply|info|security|contact|abuse|feedback|sales|terms|hello|team|admin|postmaster|notifications)@/i;
     const EMAIL_STRICT_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const PROVIDER_EMAIL_RE = /@(?:[a-z0-9-]+\.)?(?:muse\.ai|hark\.com|meta\.com|facebook\.com)$/i;
-    const BAD_NAME_RE = /^(?:Meta|Muse|Hark|Button|Settings|Profile|Account|User|Avatar|Loading|Unknown|Hatch|Home|Chat|New Chat|Log in|Sign up|待登录账号|已登录账号|通用|设置)$/i;
+    const BAD_NAME_RE = /^(?:Meta|Muse|Hark|Button|Settings|Profile|Account|User|Avatar|Loading|Unknown|Hatch|Home|Chat|New Chat|Log in|Sign up|待登录账号|已登录账号|Account not signed in|Signed-in account|通用|设置)$/i;
     const isGoodEmail = (s) => {
       if (typeof s !== 'string') return false;
       const clean = s.trim().toLowerCase();
@@ -220,18 +220,18 @@ const LOGIN_CAPTURE_INIT_JS: &str = r#"(() => {
           if (hasDaily) {
             return {
               planLabel: shortPlan ? (shortPlan + ' · 每日') : '每日上限',
-              planValue: '已使用 ' + dailyPct + '%',
+              planValue: 'Used ' + dailyPct + '%',
               planSubtext: formatHarkReset(meters.dailyResetsAt),
               planUsedPercent: dailyPct,
               extraLabel: hasMonthly ? '每月上限' : null,
-              extraValue: hasMonthly ? ('已使用 ' + monthlyPct + '%') : null,
+              extraValue: hasMonthly ? ('Used ' + monthlyPct + '%') : null,
               extraSubtext: hasMonthly ? formatHarkReset(meters.poolResetsAt) : null,
               extraUsedPercent: monthlyPct
             };
           }
           return {
             planLabel: shortPlan ? (shortPlan + ' · 每月') : '每月上限',
-            planValue: '已使用 ' + monthlyPct + '%',
+            planValue: 'Used ' + monthlyPct + '%',
             planSubtext: formatHarkReset(meters.poolResetsAt),
             planUsedPercent: monthlyPct,
             extraLabel: null,
@@ -253,7 +253,7 @@ const LOGIN_CAPTURE_INIT_JS: &str = r#"(() => {
         if (typeof tot === 'number' && tot > 0) {
           const actualUsed = typeof used === 'number' ? used : (tot - (typeof rem === 'number' ? rem : 0));
           usedPct = Math.max(0, Math.min(100, Math.round((actualUsed / tot) * 100)));
-          planVal = '已使用 ' + usedPct + '%';
+          planVal = 'Used ' + usedPct + '%';
         } else if (typeof rem === 'number') {
           planVal = '剩余 ' + rem;
         }
@@ -301,11 +301,11 @@ const LOGIN_CAPTURE_INIT_JS: &str = r#"(() => {
         || (typeof s.usage_row_value_label === 'string' && s.usage_row_value_label.trim())
         || '';
       const planValue = rawVal
-        || (u.state === 'UNLIMITED' ? '无限额度'
-          : planUsedPercent !== null ? ('已使用 ' + planUsedPercent + '%')
-          : qStatus === 'DEPLETED' ? '已用尽'
-          : qStatus === 'LOW' ? '额度偏低'
-          : '额度充足');
+        || (u.state === 'UNLIMITED' ? 'Unlimited quota'
+          : planUsedPercent !== null ? ('Used ' + planUsedPercent + '%')
+          : qStatus === 'DEPLETED' ? 'Depleted'
+          : qStatus === 'LOW' ? 'Low quota'
+          : 'Quota available');
       let planSubtext = (typeof s.statusSubtitle === 'string' && s.statusSubtitle.trim())
         || (typeof s.status_subtitle === 'string' && s.status_subtitle.trim())
         || (typeof s.usageRowFooter === 'string' && s.usageRowFooter.trim())
@@ -337,7 +337,7 @@ const LOGIN_CAPTURE_INIT_JS: &str = r#"(() => {
         if (typeof topupTot === 'number' && topupTot > 0 && typeof topupBal === 'number') {
           extraUsedPercent = Math.max(0, Math.min(100, Math.round(((topupTot - topupBal) / topupTot) * 100)));
         }
-        extraValue = topupVal || (extraUsedPercent !== null ? ('已使用 ' + extraUsedPercent + '%') : null);
+        extraValue = topupVal || (extraUsedPercent !== null ? ('Used ' + extraUsedPercent + '%') : null);
         extraSubtext = '从不过期';
       }
       return {
@@ -754,7 +754,7 @@ const LOGIN_CAPTURE_INIT_JS: &str = r#"(() => {
         }
       }
       if (node.code === 'out_of_credits' || node.error === 'rate_limit_exceeded') {
-        setQuota('额度已用尽', 0);
+        setQuota('Quota depleted', 0);
       }
       const keys = Object.keys(node);
       for (let i = 0; i < keys.length && i < 40; i++) {
@@ -1448,17 +1448,17 @@ const IDENTITY_PROBE_JS: &str = r#"(() => {
           const d = dPct !== null
             ? {
                 planLabel: '每日上限',
-                planValue: '已使用 ' + dPct + '%',
+                planValue: 'Used ' + dPct + '%',
                 planSubtext: fmtDomReset(mDailyReset),
                 planUsedPercent: dPct,
                 extraLabel: mPct !== null ? '每月上限' : null,
-                extraValue: mPct !== null ? ('已使用 ' + mPct + '%') : null,
+                extraValue: mPct !== null ? ('Used ' + mPct + '%') : null,
                 extraSubtext: mPct !== null ? fmtDomReset(mMonthlyReset) : null,
                 extraUsedPercent: mPct
               }
             : {
                 planLabel: '每月上限',
-                planValue: '已使用 ' + mPct + '%',
+                planValue: 'Used ' + mPct + '%',
                 planSubtext: fmtDomReset(mMonthlyReset),
                 planUsedPercent: mPct,
                 extraLabel: null,
@@ -1480,7 +1480,7 @@ const IDENTITY_PROBE_JS: &str = r#"(() => {
               const pct = Math.max(0, Math.min(100, Math.round((cur / max) * 100)));
               const d = {
                 planLabel: 'Hark 用量',
-                planValue: '已使用 ' + pct + '%',
+                planValue: 'Used ' + pct + '%',
                 planSubtext: '当前 ' + cur + ' / ' + max,
                 planUsedPercent: pct,
                 extraLabel: null,
@@ -1530,7 +1530,7 @@ const IDENTITY_PROBE_JS: &str = r#"(() => {
           window.__maamNextFLen = nfLen;
           const nfEmails = [];
           let nfName = window.__maamNextFName || '';
-          const badNameRe = /^(?:Meta|Muse|Hark|Button|Settings|Profile|Account|User|Avatar|Loading|Unknown|Hatch|Home|Chat|New Chat|Log in|Sign up|待登录账号|已登录账号|通用|设置)$/i;
+          const badNameRe = /^(?:Meta|Muse|Hark|Button|Settings|Profile|Account|User|Avatar|Loading|Unknown|Hatch|Home|Chat|New Chat|Log in|Sign up|待登录账号|已登录账号|Account not signed in|Signed-in account|通用|设置)$/i;
           const keyedEmailRe = /\\?"(?:email|user_email|userEmail|contact_email|contactEmail|primary_email|primaryEmail|email_address|emailAddress|billing_email|billingEmail|customer_email|customerEmail|login_email|loginEmail|account_email|accountEmail|verified_email|verifiedEmail|display_label|displayLabel|contact_point|contactPoint)\\?"\s*:\s*\\?"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\\?"/g;
           const keyedNameRe = /\\?"(?:display_name|displayName|full_name|fullName|preferred_username)\\?"\s*:\s*\\?"([^"\\]{2,60})\\?"/g;
           for (let i = 0; i < nfLen; i++) {
@@ -2314,7 +2314,7 @@ fn build_group_send_js(adapter: &SiteAdapterConfig, job_id: &str, prompt_text: &
       .map((bt) => normWs(stripBaselineTail(bt)))
       .filter((s) => s.length >= 8);
     const lines = promptText.split('\n').map((l) => l.trim()).filter(Boolean);
-    const isFooterLine = (l) => l.includes('不要复述上方方括号标题') || l.includes('不要重复上方协议标签') || l.includes('不要重复以上协议标签');
+    const isFooterLine = (l) => l.includes('不要复述上方方括号标题') || l.includes('不要重复上方协议标签') || l.includes('不要重复以上协议标签') || l.includes('do not repeat the bracketed headings above');
     const promptNeedle = (lines.length >= 2 && isFooterLine(lines[lines.length - 1]))
       ? lines[lines.length - 2]
       : (lines.length > 0 ? lines[lines.length - 1] : promptText.trim());
@@ -2324,8 +2324,9 @@ fn build_group_send_js(adapter: &SiteAdapterConfig, job_id: &str, prompt_text: &
       return n40 && (!baselineMainNorm || !baselineMainNorm.includes(n40));
     }) || headCandidates[0] || '';
     const promptHead = headPick.slice(0, 48);
-    const endMarker = '（请直接回答「当前问题」，不要复述上方方括号标题）';
-    const baselineMarkerCount = baselineMainText ? (baselineMainText.split(endMarker).length - 1) : 0;
+    const endMarker = '(Please answer the “Current question” directly, and do not repeat the bracketed headings above)';
+    const endMarkerZh = '（请直接回答「当前问题」，不要复述上方方括号标题）';
+    const baselineMarkerCount = baselineMainText ? ((baselineMainText.split(endMarker).length - 1) + (baselineMainText.split(endMarkerZh).length - 1)) : 0;
     const baselineNeedleCount = (baselineMainText && promptNeedle) ? (baselineMainText.split(promptNeedle).length - 1) : 0;
     const baselineHeadCount = (baselineMainText && promptHead) ? (baselineMainText.split(promptHead).length - 1) : 0;
     const busyRe = /Researching\s+\w+|Searching\s+for\b|正在搜索|正在联网搜索|正在检索|正在读取|正在解析|正在加载|正在生成|正在处理|努力思考中|努力工作中/gi;
@@ -2831,9 +2832,9 @@ fn build_group_poll_js(adapter: &SiteAdapterConfig, job_id: &str) -> String {
       const nt = normWs(s);
       if (nt.length >= 12 && promptNormWs.includes(nt)) return true;
       if (job.promptHead && s.includes(job.promptHead) && s.length <= promptNorm.length + 120) return true;
-      if (promptNorm.startsWith('[阶段要求]') && s.startsWith('[阶段要求]') && s.length <= promptNorm.length + 120) return true;
+      if ((promptNorm.startsWith('[阶段要求]') || promptNorm.startsWith('[Stage requirements]')) && (s.startsWith('[阶段要求]') || s.startsWith('[Stage requirements]')) && s.length <= promptNorm.length + 120) return true;
       if (job.promptNeedle && s === job.promptNeedle && s.length <= promptNorm.length + 12) return true;
-      if ((s.includes('不要复述上方方括号标题') || s.includes('不要重复上方协议标签') || s.includes('不要重复以上协议标签')) && (s.includes('[当前问题]') || s.includes('[用户问题]') || s.includes('[当前群聊发言]'))) return true;
+      if ((s.includes('不要复述上方方括号标题') || s.includes('不要重复上方协议标签') || s.includes('不要重复以上协议标签') || s.includes('do not repeat the bracketed headings above')) && (s.includes('[当前问题]') || s.includes('[用户问题]') || s.includes('[当前群聊发言]') || s.includes('[Current question]') || s.includes('[User question]') || s.includes('[Current group chat message]'))) return true;
       return false;
     };
 
@@ -2968,10 +2969,14 @@ fn build_group_poll_js(adapter: &SiteAdapterConfig, job_id: &str) -> String {
     const allNodes = rawNodeList.filter((el) => !isExcluded(el) && !isMessageWrapper(el) && isVisibleEl(el, 20, 12));
 
     const fullMain = extractCleanText(searchRoot, true);
-    const endMarker = '（请直接回答「当前问题」，不要复述上方方括号标题）';
-    const markerIdx = fullMain.lastIndexOf(endMarker);
+    const endMarker = '(Please answer the “Current question” directly, and do not repeat the bracketed headings above)';
+    const endMarkerZh = '（请直接回答「当前问题」，不要复述上方方括号标题）';
+    const markerIdxEn = fullMain.lastIndexOf(endMarker);
+    const markerIdxZh = fullMain.lastIndexOf(endMarkerZh);
+    const markerIdx = Math.max(markerIdxEn, markerIdxZh);
+    const markerLen = markerIdxEn >= markerIdxZh ? endMarker.length : endMarkerZh.length;
     const needleIdx = job.promptNeedle ? fullMain.lastIndexOf(job.promptNeedle) : -1;
-    const curMarkerCount = fullMain ? (fullMain.split(endMarker).length - 1) : 0;
+    const curMarkerCount = fullMain ? ((fullMain.split(endMarker).length - 1) + (fullMain.split(endMarkerZh).length - 1)) : 0;
     const curNeedleCount = (fullMain && job.promptNeedle) ? (fullMain.split(job.promptNeedle).length - 1) : 0;
     const curHeadCount = (fullMain && job.promptHead) ? (fullMain.split(job.promptHead).length - 1) : 0;
     const hasNewMarker = curMarkerCount > (job.baselineMarkerCount || 0);
@@ -2998,7 +3003,7 @@ fn build_group_poll_js(adapter: &SiteAdapterConfig, job_id: &str) -> String {
         const rawT = getNodeText(el);
         if (!rawT) continue;
         if (isBaselineNode(el) && (!hasNewUserTurn || isOldBaselineText(rawT))) continue;
-        if (matchesPromptSig(rawT) || (hasNewMarker && !isBaselineNode(el) && rawT.includes(endMarker))) {
+        if (matchesPromptSig(rawT) || (hasNewMarker && !isBaselineNode(el) && (rawT.includes(endMarker) || rawT.includes(endMarkerZh)))) {
           userIdx = i;
           break;
         }
@@ -3015,7 +3020,7 @@ fn build_group_poll_js(adapter: &SiteAdapterConfig, job_id: &str) -> String {
           const v = (tNode.nodeValue || '').trim();
           if (!v) continue;
           if (isBaselineNode(p) && (!hasNewUserTurn || isOldBaselineText(v))) continue;
-          if (matchesPromptSig(v) || (hasNewMarker && !isBaselineNode(p) && v.includes(endMarker))) {
+          if (matchesPromptSig(v) || (hasNewMarker && !isBaselineNode(p) && (v.includes(endMarker) || v.includes(endMarkerZh)))) {
             userAnchorEl = p;
           }
         }
@@ -3179,7 +3184,7 @@ fn build_group_poll_js(adapter: &SiteAdapterConfig, job_id: &str) -> String {
       if (!candidateText) {
         let sliceStart = -1;
         if (hasNewMarker && markerIdx >= 0) {
-          sliceStart = markerIdx + endMarker.length;
+          sliceStart = markerIdx + markerLen;
         } else if (hasNewNeedle && needleIdx >= 0) {
           sliceStart = needleIdx + job.promptNeedle.length;
         }
@@ -3309,7 +3314,8 @@ fn build_group_sync_latest_js(adapter: &SiteAdapterConfig, raw_user_content: &st
   try {
     const adapter = __ADAPTER__;
     const rawUserContent = __QUERY__;
-    const endMarker = '（请直接回答「当前问题」，不要复述上方方括号标题）';
+    const endMarker = '(Please answer the “Current question” directly, and do not repeat the bracketed headings above)';
+    const endMarkerZh = '（请直接回答「当前问题」，不要复述上方方括号标题）';
 
     const isVisibleEl = (el, minW = 16, minH = 12) => {
       if (!el || !el.isConnected) return false;
@@ -3518,8 +3524,8 @@ fn build_group_sync_latest_js(adapter: &SiteAdapterConfig, raw_user_content: &st
       if (rawQ && s === rawQ) return true;
       const ns = normWs(s);
       if (rawQNorm && ns.length >= 12 && rawQNorm.includes(ns)) return true;
-      if ((s.includes('不要复述上方方括号标题') || s.includes('不要重复上方协议标签') || s.includes('不要重复以上协议标签')) && (s.includes('[当前问题]') || s.includes('[用户问题]') || s.includes('[当前群聊发言]'))) return true;
-      if (s.startsWith('[阶段要求]') && s.includes(endMarker)) return true;
+      if ((s.includes('不要复述上方方括号标题') || s.includes('不要重复上方协议标签') || s.includes('不要重复以上协议标签') || s.includes('do not repeat the bracketed headings above')) && (s.includes('[当前问题]') || s.includes('[用户问题]') || s.includes('[当前群聊发言]') || s.includes('[Current question]') || s.includes('[User question]') || s.includes('[Current group chat message]'))) return true;
+      if ((s.startsWith('[阶段要求]') || s.startsWith('[Stage requirements]')) && (s.includes(endMarker) || s.includes(endMarkerZh))) return true;
       return false;
     };
 
@@ -3557,7 +3563,7 @@ fn build_group_sync_latest_js(adapter: &SiteAdapterConfig, raw_user_content: &st
     if (!userAnchorEl) {
       for (let i = allNodes.length - 1; i >= 0; i--) {
         const rawT = getNodeText(allNodes[i]);
-        if (rawT && (rawT.includes(endMarker) || rawT.includes('[当前问题]') || rawT.includes('[阶段要求]'))) {
+        if (rawT && (rawT.includes(endMarker) || rawT.includes(endMarkerZh) || rawT.includes('[当前问题]') || rawT.includes('[Current question]') || rawT.includes('[阶段要求]') || rawT.includes('[Stage requirements]'))) {
           userAnchorEl = allNodes[i];
           break;
         }
@@ -3570,7 +3576,7 @@ fn build_group_sync_latest_js(adapter: &SiteAdapterConfig, raw_user_content: &st
             const p = tNode.parentElement;
             if (!p || isExcluded(p)) continue;
             const v = (tNode.nodeValue || '').trim();
-            if (v && (v.includes(endMarker) || v.includes('[当前问题]') || v.includes('[阶段要求]'))) {
+            if (v && (v.includes(endMarker) || v.includes(endMarkerZh) || v.includes('[当前问题]') || v.includes('[Current question]') || v.includes('[阶段要求]') || v.includes('[Stage requirements]'))) {
               userAnchorEl = p;
             }
           }
@@ -3680,7 +3686,7 @@ fn build_group_sync_latest_js(adapter: &SiteAdapterConfig, raw_user_content: &st
         if (userTurnBox && isBeforeUserAnchor(el)) continue;
         if (el.getAttribute('data-message-author-role') === 'user' || el.getAttribute('data-role') === 'user') continue;
         const rawT = getNodeText(el);
-        if (!rawT || rawT.includes('[阶段要求]') || rawT.includes(endMarker) || (qNeedle && rawT.includes(qNeedle))) continue;
+        if (!rawT || rawT.includes('[阶段要求]') || rawT.includes('[Stage requirements]') || rawT.includes(endMarker) || rawT.includes(endMarkerZh) || (qNeedle && rawT.includes(qNeedle))) continue;
         const t = cleanChrome(rawT);
         if (!t || isPromptOverlap(t)) continue;
         text = t;
@@ -4701,7 +4707,7 @@ impl SessionManager {
     let provider_id = ProviderId::parse(raw_provider).ok_or_else(|| "无效的服务标识".to_string())?;
     let trimmed = raw_alias.trim();
     let (alias, auto_alias) = if trimmed.is_empty() {
-      ("待登录账号".to_string(), true)
+      ("Account not signed in".to_string(), true)
     } else {
       (trimmed.to_string(), false)
     };
@@ -8269,7 +8275,7 @@ impl SessionManager {
                   if !probe.display_name.is_empty() {
                     Some(probe.display_name)
                   } else if consecutive_auth_ticks >= 3 {
-                    Some("已登录账号".to_string())
+                    Some("Signed-in account".to_string())
                   } else {
                     None
                   }
@@ -8564,7 +8570,7 @@ impl SessionManager {
       .iter_mut()
       .find(|a| a.provider_id == key.provider_id && a.uuid == key.uuid)?;
 
-    let revert_placeholder = target.auto_alias && target.alias == "已登录账号";
+    let revert_placeholder = target.auto_alias && (target.alias == "Signed-in account" || target.alias == "已登录账号");
     let store_changed = revert_placeholder
       || !(target.auth_state == AuthState::LoggedOut
         && target.quota_detail.is_none()
@@ -8580,7 +8586,7 @@ impl SessionManager {
     if store_changed {
       target.auth_state = AuthState::LoggedOut;
       if revert_placeholder {
-        target.alias = "待登录账号".to_string();
+        target.alias = "Account not signed in".to_string();
       }
       target.quota_detail = None;
       target.quota_text = None;
@@ -8789,8 +8795,8 @@ impl SessionManager {
       } else if let Some(raw_soft) = soft_identity_opt {
         let cleaned = raw_soft.trim();
         if !cleaned.is_empty() && cleaned.len() <= 80 {
-          let should_apply_soft = target.alias == "待登录账号"
-            || (cleaned != "已登录账号" && target.alias != cleaned);
+          let should_apply_soft = target.alias == "Account not signed in" || target.alias == "待登录账号"
+            || (cleaned != "Signed-in account" && cleaned != "已登录账号" && target.alias != cleaned);
           if should_apply_soft {
             target.alias = cleaned.to_string();
             alias_updated = Some(cleaned.to_string());
@@ -8817,9 +8823,9 @@ impl SessionManager {
     if let Some(qt) = quota_text_opt {
       let cleaned_qt = qt.trim();
       if !cleaned_qt.is_empty() && cleaned_qt.len() <= 60 {
-        let is_placeholder = cleaned_qt == "额度充足" || cleaned_qt == "正在同步额度…";
+        let is_placeholder = cleaned_qt == "额度充足" || cleaned_qt == "Quota available" || cleaned_qt == "正在同步额度…";
         let should_overwrite = match (&target.quota_text, is_placeholder) {
-          (Some(existing), true) if existing != "额度充足" && existing != "正在同步额度…" => false,
+          (Some(existing), true) if existing != "额度充足" && existing != "Quota available" && existing != "正在同步额度…" => false,
           (Some(existing), _) if existing == cleaned_qt && target.quota_percent == quota_pct_opt => false,
           _ => true,
         };
@@ -10178,7 +10184,7 @@ impl SessionManager {
           id: user_id.clone(),
           role: "user".to_string(),
           sender: None,
-          sender_name: "我".to_string(),
+          sender_name: "Me".to_string(),
           content: trimmed.clone(),
           created_at_ms: ts,
           status: GroupReplyStatus::Done,
@@ -10194,11 +10200,11 @@ impl SessionManager {
         for (offset, (member_key, alias, auto_ch)) in target_accounts.into_iter().enumerate() {
           let stage_label = if workflow_mode == GroupWorkflowMode::Review && total_targets >= 2 {
             if offset == 0 {
-              Some("方案初稿".to_string())
+              Some("Initial draft".to_string())
             } else if offset + 1 == total_targets && total_targets >= 3 {
-              Some("综合定稿".to_string())
+              Some("Final draft".to_string())
             } else {
-              Some("交叉评审".to_string())
+              Some("Cross-review".to_string())
             }
           } else {
             None
@@ -11088,6 +11094,10 @@ impl SessionManager {
       return None;
     }
     for prefix in [
+      "I don't collaborate with other accounts' assistants, but",
+      "I don't work with other accounts' assistants, but",
+      "I can't speak for another account in the group chat, but",
+      "I can't speak on behalf of another account in the group chat, but",
       "我不和其他账号的助手一起协作分工，但",
       "我不和其他账号的助手一起协作分工,",
       "我不和其他账号的助手一起协作分工。",
@@ -11115,6 +11125,21 @@ impl SessionManager {
           *l,
           "Muse"
             | "Hark"
+            | "Idle"
+            | "Connected"
+            | "Connecting"
+            | "Still sending"
+            | "Sending"
+            | "Working hard"
+            | "Working"
+            | "Thinking hard"
+            | "Thinking"
+            | "Searching"
+            | "Searching the web"
+            | "Searching online"
+            | "Retrieving"
+            | "Loading"
+            | "Standby"
             | "空闲中"
             | "已连接"
             | "连接中"
@@ -11154,15 +11179,15 @@ impl SessionManager {
     for line in raw.trim().lines() {
       let t = line.trim();
       if let Some(inner) = t
-        .strip_prefix("[本轮结论汇总")
+        .strip_prefix("[Round conclusion summary").or_else(|| t.strip_prefix("[本轮结论汇总"))
         .and_then(|s| s.strip_suffix(']'))
       {
         idx = 0;
         let topic = inner.trim_start_matches([' ', '·']).trim();
         out_lines.push(if topic.is_empty() {
-          "已有结论".to_string()
+          "Conclusions so far".to_string()
         } else {
-          format!("已有结论（议题：{topic}）")
+          format!("Conclusions so far (topic: {topic})")
         });
         continue;
       }
@@ -11170,7 +11195,7 @@ impl SessionManager {
         if let Some(pos) = rest.find(": ") {
           if rest[..pos].contains('@') {
             idx += 1;
-            out_lines.push(format!("- 观点{idx}: {}", &rest[pos + 2..]));
+            out_lines.push(format!("- Point {idx}: {}", &rest[pos + 2..]));
             continue;
           }
         }
@@ -11225,6 +11250,20 @@ impl SessionManager {
   fn adapt_question_for_hark(raw: &str) -> String {
     let mut s = raw.trim().to_string();
     for (pat, rep) in [
+      ("everyone in the group", "you"),
+      ("Everyone in the group", "you"),
+      ("all of you", "you"),
+      ("All of you", "you"),
+      ("hey everyone", "hello"),
+      ("Hey everyone", "hello"),
+      ("hello everyone", "hello"),
+      ("Hello everyone", "hello"),
+      ("please everyone", "please"),
+      ("Please everyone", "please"),
+      ("each of you", "you"),
+      ("you all", "you"),
+      ("everyone", "you"),
+      ("Everyone", "you"),
       ("群里的各位", "你"),
       ("群里各位", "你"),
       ("群里大家", "你"),
@@ -11251,6 +11290,13 @@ impl SessionManager {
     }
 
     for prefix in [
+      "Everyone, ",
+      "Everyone: ",
+      "Everyone - ",
+      "All of you, ",
+      "All of you: ",
+      "Hey everyone, ",
+      "Hello everyone, ",
       "各位，",
       "各位,",
       "各位：",
@@ -11287,18 +11333,19 @@ impl SessionManager {
     let mut out_lines: Vec<String> = Vec::new();
     for line in base.lines() {
       let t = line.trim();
-      if t == "已有结论" {
-        out_lines.push("背景要点：".to_string());
+      if t == "Conclusions so far" || t == "已有结论" {
+        out_lines.push("Background points:".to_string());
         continue;
       }
       if let Some(inner) = t
-        .strip_prefix("已有结论（议题：")
-        .and_then(|s| s.strip_suffix('）'))
+        .strip_prefix("Conclusions so far (topic: ")
+        .and_then(|s| s.strip_suffix(')'))
+        .or_else(|| t.strip_prefix("已有结论（议题：").and_then(|s| s.strip_suffix('）')))
       {
-        out_lines.push(format!("背景要点（{inner}）："));
+        out_lines.push(format!("Background points ({inner}):"));
         continue;
       }
-      if let Some(rest) = t.strip_prefix("- 观点") {
+      if let Some(rest) = t.strip_prefix("- Point").or_else(|| t.strip_prefix("- 观点")) {
         if let Some(pos) = rest.find(": ") {
           if rest[..pos].chars().all(|c| c.is_ascii_digit()) {
             out_lines.push(format!("- {}", &rest[pos + 2..]));
@@ -11361,7 +11408,7 @@ impl SessionManager {
       let mut skill_lines = Vec::new();
       let mut total_chars = 0usize;
       for sk in &enabled_skills {
-        let line = format!("- 《{}》：{}", sk.name.trim(), sk.content.trim());
+        let line = format!("- “{}”: {}", sk.name.trim(), sk.content.trim());
         let count = line.chars().count();
         if total_chars + count > max_chars && !skill_lines.is_empty() {
           break;
@@ -11380,7 +11427,7 @@ impl SessionManager {
       let mut sys_sections: Vec<String> = Vec::new();
       if needs_full_sync {
         if let Some(role) = my_role {
-          sys_sections.push(format!("请侧重从「{role}」视角回答。"));
+          sys_sections.push(format!("Please answer mainly from the perspective of “{role}”."));
         }
         if has_shared_ctx {
           let ctx_snip = if is_hark {
@@ -11388,12 +11435,12 @@ impl SessionManager {
           } else {
             Self::sanitize_shared_context_for_prompt(&group.shared_context)
           };
-          sys_sections.push(format!("参考背景：\n{ctx_snip}"));
+          sys_sections.push(format!("Reference background:\n{ctx_snip}"));
         }
         if !enabled_skills.is_empty() {
           let skill_lines = format_skill_lines(4000);
           if !skill_lines.is_empty() {
-            sys_sections.push(format!("回答要求：\n{}", skill_lines.join("\n")));
+            sys_sections.push(format!("Answer requirements:\n{}", skill_lines.join("\n")));
           }
         }
       }
@@ -11408,7 +11455,7 @@ impl SessionManager {
       }
 
       let system_section = sys_sections.join("\n\n");
-      let user_section = format!("问题：\n{clean_question}");
+      let user_section = format!("Question:\n{clean_question}");
       let full_prompt = format!("{system_section}\n\n{user_section}");
       return Some((system_section, user_section, full_prompt, fingerprint));
     }
@@ -11434,7 +11481,7 @@ impl SessionManager {
           if snip.is_empty() {
             None
           } else {
-            Some(format!("- 提问: {snip}"))
+            Some(format!("- Question: {snip}"))
           }
         } else {
           let snip = Self::sanitize_history_assistant_text(&m.content)?;
@@ -11444,9 +11491,9 @@ impl SessionManager {
             .and_then(|sk| Self::resolve_member_alias_locked(&locked, sk))
             .unwrap_or_else(|| m.sender_name.clone());
           let label = if is_hark || raw_speaker.contains('@') {
-            "已知参考".to_string()
+            "Known reference".to_string()
           } else {
-            format!("参考（{raw_speaker}）")
+            format!("Reference ({raw_speaker})")
           };
           Some(format!("- {label}: {snip}"))
         }
@@ -11464,7 +11511,7 @@ impl SessionManager {
     if needs_full_sync {
       if let Some(role) = my_role {
         sys_sections.push(format!(
-          "[回答视角偏好]\n请重点从「{role}」视角进行分析与解答。"
+          "[Answer perspective]\nPlease focus on analyzing and answering from the “{role}” perspective."
         ));
       }
       if has_shared_ctx {
@@ -11473,25 +11520,25 @@ impl SessionManager {
         } else {
           Self::sanitize_shared_context_for_prompt(&group.shared_context)
         };
-        sys_sections.push(format!("[背景资料]\n{ctx_snip}"));
+        sys_sections.push(format!("[Background]\n{ctx_snip}"));
       }
       if !enabled_skills.is_empty() {
         let skill_lines = format_skill_lines(4000);
         if !skill_lines.is_empty() {
-          sys_sections.push(format!("[输出规范]\n{}", skill_lines.join("\n")));
+          sys_sections.push(format!("[Output format]\n{}", skill_lines.join("\n")));
         }
       }
     } else if has_shared_ctx || !enabled_skills.is_empty() || my_role.is_some() {
-      sys_sections.push("（请继续遵循本会话已提供的背景资料与输出规范）".to_string());
+      sys_sections.push("(Please continue to follow the background and output format already provided in this conversation)".to_string());
     }
 
     if let Some(stage_inst) = stage_clean {
-      sys_sections.push(format!("[阶段要求]\n{stage_inst}"));
+      sys_sections.push(format!("[Stage requirements]\n{stage_inst}"));
     }
 
     let mut user_sections: Vec<String> = Vec::new();
     if !history_lines.is_empty() {
-      user_sections.push(format!("[上文纪要]\n{}", history_lines.join("\n")));
+      user_sections.push(format!("[Previous context]\n{}", history_lines.join("\n")));
     }
 
     if is_a2a_active {
@@ -11501,10 +11548,10 @@ impl SessionManager {
         .filter(|m| *m != member_key)
         .filter_map(|m| Self::resolve_member_alias_locked(&locked, m))
         .collect::<Vec<_>>()
-        .join("、");
+        .join(", ");
       if !other_names.is_empty() {
         user_sections.push(format!(
-          "[接力标记说明]\n如需补充复核，可在回答末尾附上 @标记（可选：{other_names}）；无需接力则不要写 @。"
+          "[Relay note]\nIf a follow-up check is needed, you may append an @mention at the end of your answer (optional: {other_names}); if no relay is needed, do not write @."
         ));
       }
     }
@@ -11519,7 +11566,7 @@ impl SessionManager {
     }
 
     user_sections.push(format!(
-      "[当前问题]\n{}\n（请直接回答「当前问题」，不要复述上方方括号标题）",
+      "[Current question]\n{}\n(Please answer the “Current question” directly, and do not repeat the bracketed headings above)",
       clean_question
     ));
 
@@ -12461,9 +12508,9 @@ impl SessionManager {
       let is_external = member_key.provider_id.is_external();
       let (stage_inst, fallback_stage_inst, attachment) = if *idx == 0 {
         let s = if is_hark {
-          "请针对「当前问题」给出清晰完整的初始方案与关键依据，请直接在回复正文完整输出内容，不要省略。".to_string()
+          "For the “Current question”, give a clear, complete initial plan with the key reasons, and output it in full in the body of your reply — do not omit anything.".to_string()
         } else {
-          "请针对「当前问题」给出清晰完整的初始方案与关键依据。".to_string()
+          "For the “Current question”, give a clear, complete initial plan with the key reasons.".to_string()
         };
         (s, None, None)
       } else {
@@ -12472,11 +12519,11 @@ impl SessionManager {
           .enumerate()
           .map(|(i, (speaker, text))| {
             let clean_label = if is_hark {
-              format!("草稿要点{}", i + 1)
+              format!("Draft point {}", i + 1)
             } else if speaker.contains('@') {
-              format!("阶段{}初稿", i + 1)
+              format!("Stage {} draft", i + 1)
             } else {
-              format!("前稿（{speaker}）")
+              format!("Previous draft ({speaker})")
             };
             format!("### {clean_label}\n{}", text.trim())
           })
@@ -12485,19 +12532,19 @@ impl SessionManager {
 
         let format_with_body = |body: &str| -> String {
           if is_hark {
-            if stage_label.as_deref() == Some("综合定稿") {
+            if stage_label.as_deref() == Some("Final draft") {
               format!(
-                "请结合以下待完善方案与修改建议，为我整理输出最终可直接落地的完整结论，请直接在回复正文完整输出内容，不要省略：\n{body}"
+                "Using the draft plan and suggestions below, put together the final, directly actionable conclusion for me, and output it in full in the body of your reply — do not omit anything:\n{body}"
               )
             } else {
               format!(
-                "以下是一份待完善的方案要点，请直接为我指出其中的漏洞、边界风险与遗漏并给出具体修改建议，请直接在回复正文完整输出内容，不要省略：\n{body}"
+                "Here is a draft plan that needs work. Please point out its flaws, boundary risks, and omissions directly, and give specific suggestions for fixing them, outputting everything in full in the body of your reply — do not omit anything:\n{body}"
               )
             }
-          } else if stage_label.as_deref() == Some("综合定稿") {
-            format!("请结合以下初稿与审阅意见，整合输出最终可直接落地的完整结论：\n{body}")
+          } else if stage_label.as_deref() == Some("Final draft") {
+            format!("Using the drafts and review comments below, combine them into a final, directly actionable conclusion:\n{body}")
           } else {
-            format!("请检查以下初稿中的漏洞、边界风险与遗漏，并给出具体修正建议：\n{body}")
+            format!("Check the drafts below for flaws, boundary risks, and omissions, and give specific suggestions for fixing them:\n{body}")
           }
         };
 
@@ -12507,22 +12554,22 @@ impl SessionManager {
         } else {
           let filename = format!("review-stage-{pos}.md");
           let attachment_note = if is_hark {
-            if stage_label.as_deref() == Some("综合定稿") {
+            if stage_label.as_deref() == Some("Final draft") {
               format!(
-                "请完整阅读我附带的 `{filename}` 文档（内含前期方案与修改建议），为我整理输出最终可直接落地的完整结论，请直接在回复正文完整输出内容，不要省略。"
+                "Please read the attached `{filename}` document in full (it contains the earlier plan and suggestions), and put together the final, directly actionable conclusion for me, outputting it in full in the body of your reply — do not omit anything."
               )
             } else {
               format!(
-                "请完整阅读我附带的 `{filename}` 文档（内含待完善的方案要点），直接为我指出其中的漏洞、边界风险与遗漏并给出具体修改建议，请直接在回复正文完整输出内容，不要省略。"
+                "Please read the attached `{filename}` document in full (it contains the draft plan that needs work), and point out its flaws, boundary risks, and omissions directly, giving specific suggestions for fixing them, outputting everything in full in the body of your reply — do not omit anything."
               )
             }
-          } else if stage_label.as_deref() == Some("综合定稿") {
+          } else if stage_label.as_deref() == Some("Final draft") {
             format!(
-              "请完整阅读附件 `{filename}` 中的初稿与审阅意见，整合输出最终可直接落地的完整结论。"
+              "Please read the drafts and review comments in the attached `{filename}` in full, and combine them into a final, directly actionable conclusion."
             )
           } else {
             format!(
-              "请完整阅读附件 `{filename}` 中的前期方案内容，检查其中的漏洞、边界风险与遗漏，并给出具体修正建议。"
+              "Please read the earlier plan in the attached `{filename}` in full, and check it for flaws, boundary risks, and omissions, giving specific suggestions for fixing them."
             )
           };
           let truncated_body: String = full_prev_summary
@@ -12530,7 +12577,7 @@ impl SessionManager {
             .take(REVIEW_FALLBACK_CHAR_LIMIT)
             .collect();
           let fallback_body = if char_count > REVIEW_FALLBACK_CHAR_LIMIT {
-            format!("{truncated_body}\n...(后续超长内容已略)")
+            format!("{truncated_body}\n...(further content omitted because it was too long)")
           } else {
             truncated_body
           };
@@ -12578,7 +12625,7 @@ impl SessionManager {
               rem_msg_id,
               GroupReplyStatus::Error,
               None,
-              Some(Some("前序评审阶段未完成，已中止后续流程".to_string())),
+              Some(Some("A previous review stage did not finish, so the remaining stages were stopped.".to_string())),
               true,
             )
             .await;
@@ -12603,7 +12650,7 @@ impl SessionManager {
   ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
     Box::pin(async move {
     let stage_hint = if hop_depth > 0 {
-      Some(format!("A2A 接力第 {hop_depth} 跳"))
+      Some(format!("A2A relay hop {hop_depth}"))
     } else {
       None
     };
@@ -12702,7 +12749,7 @@ impl SessionManager {
       let speaker_alias = Self::resolve_member_alias_locked(&locked, &actual_key)
         .unwrap_or_else(|| actual_key.uuid.chars().take(6).collect());
       let next_hop = hop_depth + 1;
-      let stage_label = format!("A2A 接力 #{next_hop}");
+      let stage_label = format!("A2A relay #{next_hop}");
       let mut next_visited = active_visited.clone();
       for k in &next_targets {
         if !next_visited.contains(k) {
@@ -12713,7 +12760,7 @@ impl SessionManager {
       let ts = now_ms();
       let snippet: String = reply_text.trim().chars().take(600).collect();
       let relay_prompt = format!(
-        "请接力回应上一跳「{speaker_alias}」的协作结果：\n{snippet}"
+        "Please follow up on the previous hop’s collaboration result from “{speaker_alias}”:\n{snippet}"
       );
       let mut spawned = Vec::with_capacity(next_targets.len());
       for (offset, target_key) in next_targets.into_iter().enumerate() {
@@ -13071,7 +13118,7 @@ mod tests {
           id: "msg-u-1".to_string(),
           role: "user".to_string(),
           sender: None,
-          sender_name: "我".to_string(),
+          sender_name: "Me".to_string(),
           content: "@架构师-小明 @代码审查-小红 请评审".to_string(),
           created_at_ms: 100,
           status: GroupReplyStatus::Done,
@@ -13138,12 +13185,12 @@ mod tests {
       )
       .await
       .unwrap();
-    assert!(p1.contains("请侧重从「审查并发与边界条件」视角回答。"));
-    assert!(p1.contains("参考背景：\n核心约束：低内存，禁止写注释"));
-    assert!(p1.contains("回答要求：\n- 《简洁输出》：只输出结论与风险"));
+    assert!(p1.contains("Please answer mainly from the perspective of “审查并发与边界条件”."));
+    assert!(p1.contains("Reference background:\n核心约束：低内存，禁止写注释"));
+    assert!(p1.contains("Answer requirements:\n- “简洁输出”: 只输出结论与风险"));
     assert!(!p1.contains("不应注入此条技能"));
-    assert!(!p1.contains("[上文纪要]"));
-    assert!(p1.contains("问题：\n请评审"));
+    assert!(!p1.contains("[Previous context]"));
+    assert!(p1.contains("Question:\n请评审"));
     assert!(!p1.contains("@架构师-小明"));
     assert!(!p1.contains("协同"));
     assert!(!p1.contains("分工"));
@@ -13180,7 +13227,7 @@ mod tests {
       .build_turn_prompt_for_member(&group_id, &k2, 22, "msg-a-2", "msg-u-1", "重连后继续", None, 0)
       .await
       .unwrap();
-    assert!(p3.contains("参考背景：\n核心约束：低内存，禁止写注释"));
+    assert!(p3.contains("Reference background:\n核心约束：低内存，禁止写注释"));
 
     let new_skill = vec![GroupSharedSkill {
       id: "sk1".to_string(),
@@ -13206,7 +13253,7 @@ mod tests {
       .build_turn_prompt_for_member(&group_id, &k2, 11, "msg-a-2", "msg-u-1", "检查新上下文", None, 0)
       .await
       .unwrap();
-    assert!(p4.contains("参考背景：\n新上下文：已通过压力测试"));
+    assert!(p4.contains("Reference background:\n新上下文：已通过压力测试"));
 
     {
       let mut locked = mgr.inner.lock().await;
@@ -13225,10 +13272,10 @@ mod tests {
       )
       .await
       .unwrap();
-    assert!(p5.contains("[阶段要求]\n请做交叉评审"));
-    assert!(p5.contains("[背景资料]\n新上下文：已通过压力测试"));
-    assert!(p5.contains("- 已知参考: 建议保持上限 2 并发以控制内存"));
-    assert!(p5.contains("- 已知参考: 历史保留正文内容"));
+    assert!(p5.contains("[Stage requirements]\n请做交叉评审"));
+    assert!(p5.contains("[Background]\n新上下文：已通过压力测试"));
+    assert!(p5.contains("- Known reference: 建议保持上限 2 并发以控制内存"));
+    assert!(p5.contains("- Known reference: 历史保留正文内容"));
     assert!(!p5.contains("资深架构-大明"));
 
     let (_, _, p5_muse, _) = mgr
@@ -13346,8 +13393,8 @@ mod tests {
       .build_turn_prompt_for_member("g-hybrid-1", &api_key, 0, "m1", "u1", "开始评审", None, 0)
       .await
       .unwrap();
-    assert!(sys.contains("[背景资料]\n背景约束：低功耗"));
-    assert!(usr.contains("[接力标记说明]"));
+    assert!(sys.contains("[Background]\n背景约束：低功耗"));
+    assert!(usr.contains("[Relay note]"));
     assert!(full.contains("ClaudeCLI"));
 
     let wf_snap = mgr
@@ -13377,7 +13424,7 @@ mod tests {
     );
     assert_eq!(
       sanitized,
-      "核心约束：低内存\n已有结论（议题：可以帮我做什么）\n- 观点1: 回复一\n- 观点2: 回复二\n- 备注: 保留"
+      "核心约束：低内存\nConclusions so far (topic: 可以帮我做什么)\n- Point 1: 回复一\n- Point 2: 回复二\n- 备注: 保留"
     );
     let mut muse_healthy = make_test_account(
       ProviderId::muse(),
@@ -13694,10 +13741,23 @@ mod tests {
       "大部分情况不受影响"
     );
 
+    assert_eq!(
+      SessionManager::adapt_question_for_hark("Everyone, how does this plan look"),
+      "how does this plan look"
+    );
+    assert_eq!(
+      SessionManager::adapt_question_for_hark("What do all of you think of this plan"),
+      "What do you think of this plan"
+    );
+    assert_eq!(
+      SessionManager::adapt_question_for_hark("Hey everyone, please reply"),
+      "hello, please reply"
+    );
+
     let hark_ctx = SessionManager::sanitize_shared_context_for_hark(
       "[本轮结论汇总 · API方案]\n- a@gmail.com: 使用 REST\n- 约束: 低内存",
     );
-    assert!(hark_ctx.contains("背景要点（API方案）："));
+    assert!(hark_ctx.contains("Background points (API方案):"));
     assert!(hark_ctx.contains("- 使用 REST"));
     assert!(!hark_ctx.contains("观点1"));
   }
@@ -13921,13 +13981,13 @@ mod tests {
       });
     }
 
-    // 1. Soft fallback updates alias to "已登录账号" while keeping auto_alias = true.
+    // 1. Soft fallback updates alias to "Signed-in account" while keeping auto_alias = true.
     let (snap1, became_auth1, _, _) = SessionManager::apply_detected_metadata_locked(
       &mut locked,
       &key,
       vid,
       None,
-      Some("已登录账号".to_string()),
+      Some("Signed-in account".to_string()),
       None,
       None,
       None,
@@ -13935,10 +13995,10 @@ mod tests {
     );
     assert!(became_auth1);
     assert!(snap1.is_some());
-    assert_eq!(locked.store.accounts[0].alias, "已登录账号");
+    assert_eq!(locked.store.accounts[0].alias, "Signed-in account");
     assert!(locked.store.accounts[0].auto_alias);
 
-    // 2. Display name replaces generic "已登录账号" while still keeping auto_alias = true.
+    // 2. Display name replaces generic "Signed-in account" while still keeping auto_alias = true.
     let (snap2, _, _, _) = SessionManager::apply_detected_metadata_locked(
       &mut locked,
       &key,
@@ -13970,14 +14030,14 @@ mod tests {
     assert_eq!(locked.store.accounts[0].alias, "alice@gmail.com");
     assert!(!locked.store.accounts[0].auto_alias);
 
-    // 4. Logout on a soft-fallback placeholder reverts "已登录账号" -> "待登录账号".
-    locked.store.accounts[0].alias = "已登录账号".to_string();
+    // 4. Logout on a soft-fallback placeholder reverts "Signed-in account" -> "Account not signed in".
+    locked.store.accounts[0].alias = "Signed-in account".to_string();
     locked.store.accounts[0].auto_alias = true;
     let snap_out = SessionManager::apply_logged_out_state_locked(&mut locked, &key, vid)
       .expect("logout should emit snapshot");
     let out_acc = &snap_out.accounts[0];
     assert_eq!(out_acc.auth_state, AuthState::LoggedOut);
-    assert_eq!(out_acc.alias, "待登录账号");
+    assert_eq!(out_acc.alias, "Account not signed in");
     assert!(out_acc.auto_alias);
 
     drop(locked);
